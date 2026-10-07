@@ -11,25 +11,16 @@
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">
+  <button class="brand brand-btn" id="homeBtn" type="button" aria-label="Home">
     <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
     <span class="brand-name">Word Blast</span>
-  </div>
+  </button>
   <div class="controls">
     <label class="ctl"><span data-i18n="level">Level</span><select id="levelSel"></select></label>
-    <label class="ctl"><span data-i18n="topic">Topic</span>
-      <select id="topicSel">
-        <option value="all">All topics</option>
-        <option value="education">Education</option>
-        <option value="environment">Environment</option>
-        <option value="technology">Technology</option>
-        <option value="health">Health</option>
-        <option value="work">Work</option>
-        <option value="travel">Travel</option>
-      </select>
-    </label>
-    <label class="toggle"><input type="checkbox" id="thaiChk"><span>ไทย</span></label>
+    <label class="ctl"><span data-i18n="topic">Topic</span><select id="topicSel"></select></label>
+    <button class="icon-btn" id="progressBtn" type="button" aria-label="Progress"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
     <button class="icon-btn" id="helpBtn" type="button" aria-label="How to play"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></button>
+    <button class="icon-btn" id="settingsBtn" type="button" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg></button>
     <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" aria-label="Sound on">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path id="muteIcon" d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
     </button>
@@ -38,12 +29,20 @@
 </header>
 
 <main class="layout" id="layout">
+  <div class="coach" id="coach" role="region" aria-label="Quick tour" hidden>
+    <div class="coach-top"><span class="coach-step" id="coachStep"></span><button class="link-btn" id="coachSkip" type="button"></button></div>
+    <h2 class="coach-title" id="coachTitle"></h2>
+    <p class="coach-text" id="coachText"></p>
+    <ul class="coach-list" id="coachList" hidden></ul>
+    <div class="coach-actions"><button class="btn btn-small" id="coachNext" type="button" hidden></button></div>
+  </div>
   <section class="play">
     <div class="hud" aria-label="Game status">
       <div class="stat"><span data-i18n="score">Score</span><b id="score">0</b></div>
       <div class="stat"><span data-i18n="best">Best</span><b id="best">0</b></div>
       <div class="stat"><span data-i18n="combo">Combo</span><b id="combo">–</b></div>
       <div class="stat"><span data-i18n="streak">Streak</span><b id="streak">0</b></div>
+      <button class="icon-btn pause-btn" id="pauseBtn" type="button" aria-label="End game (P)" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg></button>
     </div>
 
     <div class="board-wrap">
@@ -80,6 +79,7 @@
       <div><dt data-i18n="accuracy">Accuracy</dt><dd id="acc">–</dd></div>
     </dl>
     <p class="hint keys-hint" data-i18n="keysHint">Keys: 1–3 pick a piece · arrows move · Enter places · Esc cancels</p>
+    <button class="link-btn read-board" id="readBoardBtn" type="button" data-i18n="readBoard">Read the board aloud (B)</button>
   </aside>
 </main>
 
@@ -90,6 +90,7 @@
       <span class="q-type" id="qType"></span>
       <span class="q-level" id="qLevel"></span>
     </div>
+    <div class="q-tour" id="qTour" hidden><span id="qTourText"></span> <button class="link-btn" id="qTourSkip" type="button"></button></div>
     <p class="q-instr" id="qInstr"></p>
     <div class="q-listen" id="qListen" hidden>
       <button class="btn btn-play" id="qPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-i18n="playAgain">Play again</span></button>
@@ -112,39 +113,102 @@
   </div>
 </div>
 
-<!-- Start / game over / review summary -->
-<div class="overlay overlay-center" id="menuOverlay" hidden>
-  <div class="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
-    <div id="menuStart">
-      <p class="eyebrow" data-i18n="eyebrow">Block puzzle · IELTS vocabulary &amp; grammar</p>
-      <h1 class="menu-title" id="menuTitle">Word Blast</h1>
-      <ol class="how">
-        <li data-i18n="how1">Answer a quick English question to get your next three pieces.</li>
-        <li data-i18n="how2">Drag pieces onto the board. Fill a row or column to clear it.</li>
-        <li data-i18n="how3">Correct answers give friendlier pieces and energy for power-ups.</li>
-        <li data-i18n="how4">Every line you clear adds the current word to your collection.</li>
-      </ol>
-    </div>
-    <div id="menuOver" hidden>
-      <p class="eyebrow" id="overEyebrow" data-i18n="gameOver">Game over</p>
-      <p class="big-score" id="overScore">0</p>
-      <p class="over-best" id="overBest"></p>
-      <dl class="sum-grid">
-        <div><dt data-i18n="lines">Lines</dt><dd id="sumLines">0</dd></div>
-        <div><dt data-i18n="answered">Answered</dt><dd id="sumAnswered">0</dd></div>
-        <div><dt data-i18n="accuracy">Accuracy</dt><dd id="sumAcc">–</dd></div>
-        <div><dt data-i18n="newWords">New words</dt><dd id="sumNew">0</dd></div>
-      </dl>
-      <div class="sum-cols">
-        <div><h3 data-i18n="wordsCollected">Words collected</h3><p class="chips" id="sumWords"></p></div>
-        <div><h3 data-i18n="weakTypes">Question types to practise</h3><ul class="weak" id="sumWeak"></ul></div>
+<!-- Home -->
+<div class="home" id="menuOverlay" hidden>
+  <div class="home-inner" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <header class="home-top">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <h1 class="brand-name" id="menuTitle">Word Blast</h1>
       </div>
-    </div>
-    <div class="menu-actions">
-      <button class="btn" id="playBtn" type="button" data-i18n="play">Play</button>
-      <button class="btn btn-ghost" id="reviewBtn" type="button"><span data-i18n="review">Review mistakes</span> <b class="badge" id="reviewCount">0</b></button>
-      <button class="btn btn-ghost" id="menuWordsBtn" type="button" data-i18n="collection">Word collection</button>
-      <button class="btn btn-ghost" id="menuHelpBtn" type="button" data-i18n="howToPlay">How to play</button>
+      <div class="home-top-actions">
+        <div class="seg" id="langPick" role="radiogroup" aria-label="Language">
+          <button type="button" role="radio" aria-checked="true" data-lang="en" lang="en">English</button>
+          <button type="button" role="radio" aria-checked="false" data-lang="th" lang="th">ไทย</button>
+        </div>
+        <button class="btn btn-ghost btn-small" id="menuSettingsBtn" type="button"><svg class="btn-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg><span data-i18n="settings">Settings</span></button>
+      </div>
+    </header>
+
+    <div class="home-grid">
+      <div class="home-col">
+      <section class="home-hero" aria-label="Play">
+        <div id="menuStart">
+          <p class="eyebrow" data-i18n="eyebrow">Block puzzle · IELTS vocabulary &amp; grammar</p>
+          <h2 class="home-title" data-i18n="homeTitle">Choose a level, then play</h2>
+        </div>
+        <div id="menuOver" hidden>
+          <p class="eyebrow" id="overEyebrow" data-i18n="gameOver">Game over</p>
+          <p class="big-score" id="overScore">0</p>
+          <p class="over-best" id="overBest"></p>
+          <dl class="sum-grid">
+            <div><dt data-i18n="lines">Lines</dt><dd id="sumLines">0</dd></div>
+            <div><dt data-i18n="answered">Answered</dt><dd id="sumAnswered">0</dd></div>
+            <div><dt data-i18n="accuracy">Accuracy</dt><dd id="sumAcc">–</dd></div>
+            <div><dt data-i18n="newWords">New words</dt><dd id="sumNew">0</dd></div>
+          </dl>
+          <div class="sum-cols">
+            <div><h3 data-i18n="wordsCollected">Words collected</h3><p class="chips" id="sumWords"></p></div>
+            <div><h3 data-i18n="weakTypes">Question types to practise</h3><ul class="weak" id="sumWeak"></ul></div>
+          </div>
+        </div>
+        <div id="menuPause" hidden>
+          <p class="eyebrow" data-i18n="paused">Paused</p>
+          <p class="big-score" id="pauseScore">0</p>
+          <p class="over-best" data-i18n="pauseNote">Your game is saved automatically. You can close this page and continue later.</p>
+        </div>
+        <p class="home-summary" id="homeSummary"></p>
+        <p class="hint" id="homeApplyNote" data-i18n="homeApply" hidden>Changes apply from your next question.</p>
+        <div class="daily" id="daily">
+          <div class="daily-row"><span id="dailyText"></span><b id="dailyStreak"></b></div>
+          <div class="daily-bar" aria-hidden="true"><i id="dailyBar"></i></div>
+        </div>
+        <p class="nudge" id="backupNote" hidden><span data-i18n="nudge">Your progress is stored only on this device. Save a backup so you do not lose it.</span> <button class="link-btn" id="backupNoteBtn" type="button" data-i18n="backupNow">Back up now</button></p>
+        <p class="saved-note" id="savedNote" hidden></p>
+        <p class="session-note" id="sessionNote" role="status" hidden></p>
+        <div class="menu-actions">
+          <button class="btn" id="resumeBtn" type="button" hidden>Continue</button>
+          <button class="btn" id="playBtn" type="button">Play</button>
+          <button class="btn btn-ghost" id="pauseEndBtn" type="button" data-i18n="endGame" hidden>End game</button>
+        </div>
+        <div class="confirm" id="discardConfirm" hidden>
+          <span data-i18n="discardAsk">Discard the saved game and start a new one?</span>
+          <button class="btn btn-small" id="discardYes" type="button" data-i18n="discardYes">Start new game</button>
+          <button class="btn btn-small btn-ghost" id="discardNo" type="button" data-i18n="cancel">Cancel</button>
+        </div>
+      </section>
+
+      <section class="home-card home-study" aria-labelledby="studyH">
+        <h2 id="studyH" data-i18n="homeStudy">Study</h2>
+        <div class="tile-list">
+          <button class="tile-btn" id="reviewBtn" type="button"><span class="tile-text"><b data-i18n="review">Review due</b><small id="reviewNote"></small></span><b class="badge" id="reviewCount">0</b></button>
+          <button class="tile-btn" id="practiceBtn" type="button"><span class="tile-text"><b data-i18n="practice">Practise words</b><small data-i18n="practiceDesc">Quiz yourself on the words you collected</small></span><b class="badge" id="practiceCount">0</b></button>
+          <button class="tile-btn go" id="menuProgressBtn" type="button"><span class="tile-text"><b data-i18n="progress">Progress</b><small data-i18n="progressDesc">Daily goal, accuracy and backup</small></span></button>
+          <button class="tile-btn go" id="menuWordsBtn" type="button"><span class="tile-text"><b data-i18n="collection">Word collection</b><small data-i18n="wordsDesc">Every word you have collected</small></span></button>
+        </div>
+      </section>
+      </div>
+      <div class="home-col">
+      <section class="home-card home-level" aria-labelledby="levelH">
+        <h2 id="levelH" data-i18n="level">Level</h2>
+        <p class="hint" data-i18n="homeLevelHelp">Pick a level that feels slightly challenging. You can change it any time.</p>
+        <div class="level-grid" id="levelPick" role="radiogroup" aria-labelledby="levelH"></div>
+      </section>
+
+      <section class="home-card home-topic" aria-labelledby="topicH">
+        <h2 id="topicH" data-i18n="topic">Topic</h2>
+        <div class="topic-chips" id="topicPick" role="radiogroup" aria-labelledby="topicH"></div>
+      </section>
+
+      <section class="home-card home-guide" aria-labelledby="guideH">
+        <h2 id="guideH" data-i18n="homeGuide">Guide</h2>
+        <div class="tile-list">
+          <button class="tile-btn go" id="menuTourBtn" type="button"><span class="tile-text"><b data-i18n="tour">Quick tour</b><small data-i18n="tourDesc">A one-minute walkthrough on a real board</small></span></button>
+          <button class="tile-btn go" id="menuHelpBtn" type="button"><span class="tile-text"><b data-i18n="howToPlay">How to play</b><small data-i18n="helpDesc">Rules, scoring and power-ups</small></span></button>
+        </div>
+      </section>
+
+      </div>
     </div>
     <p class="load-error" id="loadError" hidden data-i18n="loadError">questions.json could not be loaded. Open this folder through a local server (for example: python3 -m http.server) instead of opening the file directly.</p>
   </div>
@@ -163,7 +227,62 @@
       <select id="wordLevel" aria-label="Filter by level"><option value="all">All levels</option></select>
       <select id="wordTopic" aria-label="Filter by topic"></select>
     </div>
+    <button class="btn btn-small words-practice" id="wordsPractice" type="button" data-i18n="practiceThese">Practise these words</button>
     <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="overlay overlay-center" id="progOverlay" hidden>
+  <div class="words-panel" role="dialog" aria-modal="true" aria-labelledby="progTitle">
+    <div class="words-head">
+      <h2 id="progTitle" data-i18n="progress">Progress</h2>
+      <button class="icon-btn" id="progClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="prog-body" id="progBody"></div>
+    <section class="prog-sec backup" id="backupSec">
+      <h3 data-i18n="backupTitle">Back up your progress</h3>
+      <p class="hint" id="backupInfo"></p>
+      <div class="backup-row">
+        <button class="btn btn-small" id="exportBtn" type="button" data-i18n="exportFile">Download backup file</button>
+        <button class="btn btn-small btn-ghost" id="copyBtn" type="button" data-i18n="exportCopy">Copy backup text</button>
+        <button class="btn btn-small btn-ghost" id="importBtn" type="button" data-i18n="importFile">Restore from file</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+      <textarea id="backupText" class="backup-text" readonly hidden aria-label="Backup text"></textarea>
+      <details class="paste" id="pasteBox">
+        <summary data-i18n="importPaste">Restore from pasted text</summary>
+        <textarea id="importText" class="backup-text" aria-label="Backup text to restore"></textarea>
+        <button class="btn btn-small btn-ghost" id="importPasteBtn" type="button" data-i18n="checkBackup">Check backup</button>
+      </details>
+      <div class="import-card" id="importCard" role="status" hidden></div>
+    </section>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="overlay overlay-center" id="settingsOverlay" hidden>
+  <div class="words-panel settings-panel" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="words-head">
+      <h2 id="setTitle" data-i18n="settings">Settings</h2>
+      <button class="icon-btn" id="setClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <div class="set-list">
+      <label class="set-row" for="patternsChk">
+        <span class="set-text"><b data-i18n="setPatterns">Block patterns</b><small data-i18n="setPatternsHelp">Adds a pattern to each colour, so blocks are easy to tell apart without relying on colour.</small></span>
+        <input type="checkbox" id="patternsChk">
+      </label>
+      <div class="swatches" aria-hidden="true"><i class="sw pc1"></i><i class="sw pc2"></i><i class="sw pc3"></i><i class="sw pc4"></i><i class="sw pc5"></i><i class="sw pc6"></i></div>
+      <label class="set-row" for="vibChk">
+        <span class="set-text"><b data-i18n="setVibrate">Vibration</b><small data-i18n="setVibrateHelp">A short buzz when you clear lines, answer, or place a piece in the wrong spot.</small></span>
+        <input type="checkbox" id="vibChk">
+      </label>
+      <p class="hint" id="vibNote" hidden></p>
+      <label class="set-row" for="soundChk">
+        <span class="set-text"><b data-i18n="setSound">Sound</b><small data-i18n="setSoundHelp">Short tones for placing, clearing and answering.</small></span>
+        <input type="checkbox" id="soundChk">
+      </label>
+    </div>
   </div>
 </div>
 
@@ -179,6 +298,19 @@
   </div>
 </div>
 
+<!-- Stop: ask before ending the game, right on the game page -->
+<div class="overlay overlay-center" id="stopOverlay" hidden>
+  <div class="words-panel stop-panel" role="alertdialog" aria-modal="true" aria-labelledby="stopTitle" aria-describedby="stopText">
+    <h2 id="stopTitle" data-i18n="stopTitle">End this game?</h2>
+    <p id="stopText" data-i18n="stopText">Ending the game shows your results. This game cannot be continued afterwards.</p>
+    <div class="menu-actions">
+      <button class="btn" id="stopKeep" type="button" data-i18n="stopKeep">Keep playing</button>
+      <button class="btn btn-bad" id="stopEnd" type="button" data-i18n="endGame">End game</button>
+    </div>
+  </div>
+</div>
+
+<div class="sr-only" id="sr" aria-live="polite" aria-atomic="true"></div>
 <div class="toast-stack" id="toasts" aria-live="polite"></div>
 <div class="ghost" id="ghost" aria-hidden="true" hidden></div>
 <script src="app.js"></script>
