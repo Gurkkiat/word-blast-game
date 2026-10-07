@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Blast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500;700&family=Anuphan:wght@400;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="brand-name">Word Blast</span>
+  </div>
+  <div class="controls">
+    <label class="ctl"><span data-i18n="level">Level</span><select id="levelSel"></select></label>
+    <label class="ctl"><span data-i18n="topic">Topic</span>
+      <select id="topicSel">
+        <option value="all">All topics</option>
+        <option value="education">Education</option>
+        <option value="environment">Environment</option>
+        <option value="technology">Technology</option>
+        <option value="health">Health</option>
+        <option value="work">Work</option>
+        <option value="travel">Travel</option>
+      </select>
+    </label>
+    <label class="toggle"><input type="checkbox" id="thaiChk"><span>ไทย</span></label>
+    <button class="icon-btn" id="helpBtn" type="button" aria-label="How to play"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></svg></button>
+    <button class="icon-btn" id="muteBtn" type="button" aria-pressed="false" aria-label="Sound on">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path id="muteIcon" d="M4 9h4l5-4v14l-5-4H4zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+    </button>
+    <button class="icon-btn" id="wordsBtn" type="button"><span data-i18n="words">Words</span> <b id="wordCount">0</b></button>
+  </div>
+</header>
+
+<main class="layout" id="layout">
+  <section class="play">
+    <div class="hud" aria-label="Game status">
+      <div class="stat"><span data-i18n="score">Score</span><b id="score">0</b></div>
+      <div class="stat"><span data-i18n="best">Best</span><b id="best">0</b></div>
+      <div class="stat"><span data-i18n="combo">Combo</span><b id="combo">–</b></div>
+      <div class="stat"><span data-i18n="streak">Streak</span><b id="streak">0</b></div>
+    </div>
+
+    <div class="board-wrap">
+      <div class="board" id="board" tabindex="0" aria-label="Game board, 8 by 8. Use arrow keys to move the piece and Enter to place it."></div>
+      <div class="float-layer" id="floatLayer" aria-hidden="true"></div>
+      <div class="banner" id="stuckBanner" hidden>
+        <p data-i18n="stuck">No space for these pieces. Use a power-up, or end the game.</p>
+        <button class="btn btn-small" id="endBtn" type="button" data-i18n="endGame">End game</button>
+      </div>
+      <div class="banner banner-info" id="bombBanner" hidden>
+        <p data-i18n="bombAim">Tap a cell to clear the 3×3 area around it.</p>
+        <button class="btn btn-small btn-ghost" id="bombCancel" type="button" data-i18n="cancel">Cancel</button>
+      </div>
+    </div>
+
+    <div class="tray" id="tray" aria-label="Pieces"></div>
+  </section>
+
+  <aside class="side">
+    <div class="energy-box">
+      <div class="energy-head"><span data-i18n="energy">Energy</span><span class="pips" id="pips" aria-live="polite"></span></div>
+      <p class="hint" data-i18n="energyHint">Answer correctly to earn energy. Spend it on power-ups.</p>
+      <div class="powers">
+        <button class="power" id="pBomb" type="button" data-cost="3"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="14" r="6"/><path d="M15 9l3-3M18 3v2M21 6h-2"/></svg><span data-i18n="bomb">Bomb</span><b>3</b></button>
+        <button class="power" id="pSingle" type="button" data-cost="1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg><span data-i18n="single">Single</span><b>1</b></button>
+        <button class="power" id="pSwap" type="button" data-cost="2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg><span data-i18n="swap">Swap</span><b>2</b></button>
+        <button class="power" id="pUndo" type="button" data-cost="2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7L4 12l5 5M4 12h11a5 5 0 0 1 0 10h-3"/></svg><span data-i18n="undo">Undo</span><b>2</b></button>
+      </div>
+      <button class="link-btn" id="powerHelp" type="button" data-i18n="powerHelp">How power-ups work</button>
+    </div>
+    <dl class="mini-stats">
+      <div><dt data-i18n="lines">Lines</dt><dd id="lines">0</dd></div>
+      <div><dt data-i18n="answered">Answered</dt><dd id="answered">0</dd></div>
+      <div><dt data-i18n="accuracy">Accuracy</dt><dd id="acc">–</dd></div>
+    </dl>
+    <p class="hint keys-hint" data-i18n="keysHint">Keys: 1–3 pick a piece · arrows move · Enter places · Esc cancels</p>
+  </aside>
+</main>
+
+<!-- Question sheet -->
+<div class="overlay" id="qOverlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qType">
+    <div class="sheet-head">
+      <span class="q-type" id="qType"></span>
+      <span class="q-level" id="qLevel"></span>
+    </div>
+    <p class="q-instr" id="qInstr"></p>
+    <div class="q-listen" id="qListen" hidden>
+      <button class="btn btn-play" id="qPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-i18n="playAgain">Play again</span></button>
+    </div>
+    <p class="q-prompt" id="qPrompt"></p>
+    <div class="q-order" id="qOrder" hidden>
+      <div class="order-line" id="orderLine"></div>
+      <div class="order-bank" id="orderBank"></div>
+    </div>
+    <div class="q-options" id="qOptions"></div>
+    <div class="q-actions" id="qOrderActions" hidden>
+      <button class="btn btn-ghost" id="orderReset" type="button" data-i18n="reset">Reset</button>
+      <button class="btn" id="orderCheck" type="button" data-i18n="check">Check</button>
+    </div>
+    <div class="q-feedback" id="qFeedback" role="status" aria-live="polite" hidden></div>
+    <div class="q-actions" id="qContinueRow" hidden>
+      <span class="auto-note" id="autoNote"></span>
+      <button class="btn" id="qContinue" type="button" data-i18n="continue">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Start / game over / review summary -->
+<div class="overlay overlay-center" id="menuOverlay" hidden>
+  <div class="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+    <div id="menuStart">
+      <p class="eyebrow" data-i18n="eyebrow">Block puzzle · IELTS vocabulary &amp; grammar</p>
+      <h1 class="menu-title" id="menuTitle">Word Blast</h1>
+      <ol class="how">
+        <li data-i18n="how1">Answer a quick English question to get your next three pieces.</li>
+        <li data-i18n="how2">Drag pieces onto the board. Fill a row or column to clear it.</li>
+        <li data-i18n="how3">Correct answers give friendlier pieces and energy for power-ups.</li>
+        <li data-i18n="how4">Every line you clear adds the current word to your collection.</li>
+      </ol>
+    </div>
+    <div id="menuOver" hidden>
+      <p class="eyebrow" id="overEyebrow" data-i18n="gameOver">Game over</p>
+      <p class="big-score" id="overScore">0</p>
+      <p class="over-best" id="overBest"></p>
+      <dl class="sum-grid">
+        <div><dt data-i18n="lines">Lines</dt><dd id="sumLines">0</dd></div>
+        <div><dt data-i18n="answered">Answered</dt><dd id="sumAnswered">0</dd></div>
+        <div><dt data-i18n="accuracy">Accuracy</dt><dd id="sumAcc">–</dd></div>
+        <div><dt data-i18n="newWords">New words</dt><dd id="sumNew">0</dd></div>
+      </dl>
+      <div class="sum-cols">
+        <div><h3 data-i18n="wordsCollected">Words collected</h3><p class="chips" id="sumWords"></p></div>
+        <div><h3 data-i18n="weakTypes">Question types to practise</h3><ul class="weak" id="sumWeak"></ul></div>
+      </div>
+    </div>
+    <div class="menu-actions">
+      <button class="btn" id="playBtn" type="button" data-i18n="play">Play</button>
+      <button class="btn btn-ghost" id="reviewBtn" type="button"><span data-i18n="review">Review mistakes</span> <b class="badge" id="reviewCount">0</b></button>
+      <button class="btn btn-ghost" id="menuWordsBtn" type="button" data-i18n="collection">Word collection</button>
+      <button class="btn btn-ghost" id="menuHelpBtn" type="button" data-i18n="howToPlay">How to play</button>
+    </div>
+    <p class="load-error" id="loadError" hidden data-i18n="loadError">questions.json could not be loaded. Open this folder through a local server (for example: python3 -m http.server) instead of opening the file directly.</p>
+  </div>
+</div>
+
+<!-- Word collection -->
+<div class="overlay overlay-center" id="wordsOverlay" hidden>
+  <div class="words-panel" role="dialog" aria-modal="true" aria-labelledby="wordsTitle">
+    <div class="words-head">
+      <h2 id="wordsTitle" data-i18n="collection">Word collection</h2>
+      <button class="icon-btn" id="wordsClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <p class="hint" id="wordsSummary"></p>
+    <div class="words-filters">
+      <input type="search" id="wordSearch" placeholder="Search words" aria-label="Search words">
+      <select id="wordLevel" aria-label="Filter by level"><option value="all">All levels</option></select>
+      <select id="wordTopic" aria-label="Filter by topic"></select>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<!-- How to play -->
+<div class="overlay overlay-center" id="helpOverlay" hidden>
+  <div class="help-panel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="words-head">
+      <h2 id="helpTitle" data-i18n="howToPlay">How to play</h2>
+      <button class="icon-btn" id="helpClose" type="button" aria-label="Close">✕</button>
+    </div>
+    <nav class="help-nav" id="helpNav" aria-label="Sections"></nav>
+    <div class="help-body" id="helpBody"></div>
+  </div>
+</div>
+
+<div class="toast-stack" id="toasts" aria-live="polite"></div>
+<div class="ghost" id="ghost" aria-hidden="true" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
